@@ -130,6 +130,7 @@
         while(count_id > c){
             node *x = chain[c];
             printf("f-PDF@%s = %lf\n",x->name, x->diff);
+            c++;
         }
     }
 
