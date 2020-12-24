@@ -1,9 +1,8 @@
 %{
     #include <stdio.h>
-    #include <stdlib.>
+    #include <stdlib.h>
     #include <math.h>
     #include <string.h>
-    #include <y.tab.h>
     extern double yylval;
     extern char IDNAME[20];
 %}
@@ -22,17 +21,5 @@ cos             return COS;
 sin             return SIN;
 ln              return LN;
 exp             return EXP;
-"+"             return PLUS;
-"‑"             return MINUS;
-"/"             return DIV;
-"∗"             return MUL;
-"^"             return POW;
-"("             return OPENBRACKET;
-")"             return CLOSEBRACKET;
-"="             return ASSIGN;
-"f"             return FUNC;
-","             return COMMA;
-":"             return COLON;
-"\n"            return EOLN;
 
 %%
