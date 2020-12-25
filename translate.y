@@ -11,7 +11,7 @@
     int count_node = 0;
     int all_node = 0;
 
-    enum OP {ROOT,ID,NU,PL,MN,UMN,DIV,MUL,P,L,C,S,EX};
+    enum OP {zs,ROOT,ID,NU,PL,MN,UMN,DI,MU,P,L,C,S,EX};
 
     typedef struct Node{
         double diff;
@@ -29,19 +29,22 @@
     void ReverseAutoDiff(node *chain[]);
 %}
 
-%token NUMBER IDENT 
+%token NUMBER IDENT FUNC LEFTPA RIGHTPA COMMA COLON
+%token EQUA
+%left PLUS MINUS
+%left  MUL DIV
 %token COS SIN
-%left LN EXP
+%left LN EXP POW 
 %%
 
-REV_AutoDiff : func_def '\n'
+REV_AutoDiff : func_def
     {
         printf("val = %lf\n",chain[all_node-1]->val);
         ReverseAutoDiff(chain);
     }
     ;
 
-func_def : 'f' '(' var_list ')' ':' expr
+func_def : FUNC var_list RIGHTPA COLON expr
     {
         node *x = CreateNode();
         chain[all_node++] = x;
@@ -58,9 +61,9 @@ var_init : IDENT
         chain[all_node++] = x;
         count_id++;
         x->op = ID;
-        strcpy(x->name,*yytext);
+        strcpy(x->name,yytext);
     }
-    '=' NUMBER
+    EQUA NUMBER
     {
         node *x = chain[all_node-1];
         x->val = $4;
@@ -68,7 +71,7 @@ var_init : IDENT
     ;
 
 var_list : var_init 
-    | var_list ',' var_init
+    | var_list COMMA var_init
     ;
 
 expr : IDENT
@@ -85,7 +88,7 @@ expr : IDENT
             x->op = NU;
             x->val = $1;
         }                    
-    | expr '+' expr
+    | expr PLUS expr
         {
             node *x = CreateNode();
             chain[all_node++] = x;
@@ -96,7 +99,7 @@ expr : IDENT
             x->reverse[1] = chain[$3];
             calcVal(x);
         }    
-    | expr '-' expr
+    | expr MINUS expr
         {
             node *x = CreateNode();
             chain[all_node++] = x;
@@ -107,29 +110,29 @@ expr : IDENT
             x->reverse[1] = chain[$3];
             calcVal(x);
         }  
-    | expr '*' expr
+    | expr MUL expr
         {
             node *x = CreateNode();
             chain[all_node++] = x;
             $$ = all_node;
             count_node++;
-            x->op = MUL;
+            x->op = MU;
             x->reverse[0] = chain[$1];
             x->reverse[1] = chain[$3];
             calcVal(x);
         }  
-    | expr '/' expr
+    | expr DIV expr
         {
             node *x = CreateNode();
             chain[all_node++] = x;
             $$ = all_node;
             count_node++;
-            x->op = DIV;
+            x->op = DI;
             x->reverse[0] = chain[$1];
             x->reverse[1] = chain[$3];
             calcVal(x);
         }  
-    | '-' expr  %prec '*'
+    | MINUS expr  %prec MUL
         {
             node *x = CreateNode();
             chain[all_node++] = x;
@@ -139,11 +142,11 @@ expr : IDENT
             x->reverse[0] = chain[$2];
             calcVal(x);
         }  
-    | '(' expr ')'
+    | LEFTPA expr RIGHTPA
         {
             $$ = $2;
         }  
-    | expr '^' expr
+    | expr POW expr
         {
             node *x = CreateNode();
             chain[all_node++] = x;
@@ -154,7 +157,7 @@ expr : IDENT
             x->reverse[1] = chain[$3];
             calcVal(x);
         }  
-    | EXP '(' expr ')'
+    | EXP expr RIGHTPA
         {
             node *x = CreateNode();
             chain[all_node++] = x;
@@ -164,7 +167,7 @@ expr : IDENT
             x->reverse[0] = chain[$3];
             calcVal(x);
         }  
-    | LN '(' expr ')'
+    | LN expr RIGHTPA
         {
             node *x = CreateNode();
             chain[all_node++] = x;
@@ -174,7 +177,7 @@ expr : IDENT
             x->reverse[0] = chain[$3];
             calcVal(x);
         }  
-    | SIN '(' expr ')'
+    | SIN expr RIGHTPA
         {
             node *x = CreateNode();
             chain[all_node++] = x;
@@ -184,7 +187,7 @@ expr : IDENT
             x->reverse[0] = chain[$3];
             calcVal(x);
         }  
-    | COS '(' expr ')'
+    | COS expr RIGHTPA
         {
             node *x = CreateNode();
             chain[all_node++] = x;
@@ -222,6 +225,7 @@ int yywrap(){
             x->name[i] = '\0';
             x->reverse[i] = NULL;
         }
+        printf("%d\n",all_node);
         return x;
     }
 
@@ -248,10 +252,10 @@ void calcVal(node *n){
             case UMN:
                 n->val = -n->reverse[0]->val;
                 break;
-            case DIV:
+            case DI:
                 n->val = n->reverse[0]->val / n->reverse[1]->val;
                 break;
-            case MUL:
+            case MU:
                 n->val = n->reverse[0]->val * n->reverse[1]->val;
                 break;
             case P:
@@ -289,11 +293,11 @@ void ReverseAutoDiff(node *chain[]){
                     x->reverse[0]->diff += x->diff;
                     x->reverse[1]->diff += -x->diff;
                     break;
-                case DIV:
+                case DI:
                     x->reverse[0]->diff += x->diff / x->reverse[1]->val;
                     x->reverse[1]->diff += x->diff * x->reverse[0]->val /pow(x->reverse[1]->val,2);
                     break;
-                case MUL:
+                case MU:
                     x->reverse[0]->diff += x->diff * x->reverse[1]->val;
                     x->reverse[1]->diff += x->diff * x->reverse[0]->val;
                     break;
