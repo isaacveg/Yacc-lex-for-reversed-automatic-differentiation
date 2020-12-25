@@ -50,7 +50,7 @@ func_def : FUNC var_list RIGHTPA COLON expr
         chain[all_node++] = x;
         count_node++;
         x->op = ROOT;
-        x->reverse[0] = chain[$6];
+        x->reverse[0] = chain[$5];
         calcVal(x);
     }
     ;
@@ -164,7 +164,7 @@ expr : IDENT
             $$ = all_node;
             count_node++;
             x->op = EX;
-            x->reverse[0] = chain[$3];
+            x->reverse[0] = chain[$2];
             calcVal(x);
         }  
     | LN expr RIGHTPA
@@ -174,7 +174,7 @@ expr : IDENT
             $$ = all_node;
             count_node++;
             x->op = L;
-            x->reverse[0] = chain[$3];
+            x->reverse[0] = chain[$2];
             calcVal(x);
         }  
     | SIN expr RIGHTPA
@@ -184,7 +184,7 @@ expr : IDENT
             $$ = all_node;
             count_node++;
             x->op = S;
-            x->reverse[0] = chain[$3];
+            x->reverse[0] = chain[$2];
             calcVal(x);
         }  
     | COS expr RIGHTPA
@@ -194,7 +194,7 @@ expr : IDENT
             $$ = all_node;
             count_node++;
             x->op = C;
-            x->reverse[0] = chain[$3];
+            x->reverse[0] = chain[$2];
             calcVal(x);
         }  
     ;
