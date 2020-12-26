@@ -12,88 +12,94 @@ digit [0-9]
 
 
 %%
-"cos("            {
-                    printf("%s, cos\n",yytext);
+
+"\n"            {
+                    // printf("enter\n");
+                    return EOL;
+                }
+
+"cos"            {
+                    // printf("%s, cos\n",yytext);
                     return COS;
                 }
-"sin("           {   
-                    printf("%s, sin\n",yytext);
+"sin"           {   
+                    // printf("%s, sin\n",yytext);
                     return SIN;
                 }
-"ln("             {   
-                    printf("%s, ln\n",yytext);
+"ln"             {   
+                    // printf("%s, ln\n",yytext);
                     return LN;
                 }
-"exp("            {   
-                    printf("%s, exp\n",yytext);
+"exp"            {   
+                    // printf("%s, exp\n",yytext);
                     return EXP;
                 }
 
-"f("            {
-                    printf("%s, function\n",yytext);
+"f"            {
+                    // printf("%s, function\n",yytext);
                     return FUNC;
                 }
 
 "="             {
-                    printf("%s, equal\n",yytext);
+                    // printf("%s, equal\n",yytext);
                     return EQUA;
                 }
 
 "-"             {
-                    printf("%s, minus\n",yytext);
+                    // printf("%s, minus\n",yytext);
                     return MINUS;
                 }     
 
 "+"             {
-                    printf("%s, equal\n",yytext);
+                    // printf("%s, equal\n",yytext);
                     return PLUS;
                 }           
 
 "/"             {
-                    printf("%s, divide\n",yytext);
+                    // printf("%s, divide\n",yytext);
                     return DIV;
                 }  
 
 "*"             {
-                    printf("%s, multiply\n",yytext);
+                    // printf("%s, multiply\n",yytext);
                     return MUL;
                 }  
 
 "^"             {
-                    printf("%s, power\n",yytext);
+                    // printf("%s, power\n",yytext);
                     return POW;
                 }  
 
 "("             {
-                    printf("%s, Lparen\n",yytext);
+                    // printf("%s, Lparen\n",yytext);
                     return LEFTPA;
                 }  
 
 ")"             {
-                    printf("%s, Rparen\n",yytext);
+                    // printf("%s, Rparen\n",yytext);
                     return RIGHTPA;
                 }  
 
 ":"             {
-                    printf("%s, colon\n",yytext);
+                    // printf("%s, colon\n",yytext);
                     return COLON;
                 }  
 
 ","             {
-                    printf("%s, comma\n",yytext);
+                    // printf("%s, comma\n",yytext);
                     return COMMA;
                 }  
 
-
 {letter}({letter}|{digit})*             {   
-                                            printf("%s,ident\n",yytext);
-                                             return IDENT;
+                                            // printf("%s,ident\n",yytext);
+                                            return IDENT;
                                         }
 {digit}+        {
-                    printf("%s, number\n",yytext);
+                    // printf("%s, number\n",yytext);
                     yylval = atoi(yytext);
                     return NUMBER;
                 }
+
 %%
     /* int main(){
     int sym;

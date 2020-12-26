@@ -29,28 +29,35 @@
     void ReverseAutoDiff(node *chain[]);
 %}
 
-%token NUMBER IDENT FUNC LEFTPA RIGHTPA COMMA COLON
 %token EQUA
 %left PLUS MINUS
 %left  MUL DIV
 %token COS SIN
 %left LN EXP POW 
+%token NUMBER IDENT FUNC LEFTPA RIGHTPA COMMA COLON EOL
+
+
 %%
 
-REV_AutoDiff : func_def
+Start : REV_AutoDiff
+        | REV_AutoDiff Start
+        ;
+
+REV_AutoDiff : func_def EOL
     {
         printf("val = %lf\n",chain[all_node-1]->val);
         ReverseAutoDiff(chain);
     }
     ;
 
-func_def : FUNC var_list RIGHTPA COLON expr
+func_def : FUNC LEFTPA var_list RIGHTPA COLON expr
     {
         node *x = CreateNode();
         chain[all_node++] = x;
         count_node++;
         x->op = ROOT;
-        x->reverse[0] = chain[$5];
+        x->reverse[0] = chain[$6];
+        // printf("x->reverse[0]: %d, val: %lf\n",$6, chain[$6]->val);
         calcVal(x);
     }
     ;
@@ -62,10 +69,12 @@ var_init : IDENT
         count_id++;
         x->op = ID;
         strcpy(x->name,yytext);
+        // printf("yytext: %s, x->name: %s\n",yytext, x->name);
     }
     EQUA NUMBER
     {
         node *x = chain[all_node-1];
+        // printf("ident name:%s, ident val:%d\n",x->name,$4);
         x->val = $4;
     }
     ;
@@ -77,14 +86,16 @@ var_list : var_init
 expr : IDENT
         {
             int x = FindID(yytext);
+            // printf("x value: %d\n",x);
             $$ = x;
+            
         }
     | NUMBER
         {
             node *x = CreateNode();
             chain[all_node++] = x;
             count_node++;
-            $$ = all_node;
+            $$ = all_node-1;
             x->op = NU;
             x->val = $1;
         }                    
@@ -92,10 +103,10 @@ expr : IDENT
         {
             node *x = CreateNode();
             chain[all_node++] = x;
-            $$ = all_node;
+            $$ = all_node-1;
             count_node++;
             x->op = PL;
-            x->reverse[0] = chain[$1];
+            x->reverse[0] = chain[$1];  
             x->reverse[1] = chain[$3];
             calcVal(x);
         }    
@@ -103,7 +114,7 @@ expr : IDENT
         {
             node *x = CreateNode();
             chain[all_node++] = x;
-            $$ = all_node;
+            $$ = all_node-1;
             count_node++;
             x->op = MN;
             x->reverse[0] = chain[$1];
@@ -114,7 +125,7 @@ expr : IDENT
         {
             node *x = CreateNode();
             chain[all_node++] = x;
-            $$ = all_node;
+            $$ = all_node-1;
             count_node++;
             x->op = MU;
             x->reverse[0] = chain[$1];
@@ -125,18 +136,18 @@ expr : IDENT
         {
             node *x = CreateNode();
             chain[all_node++] = x;
-            $$ = all_node;
+            $$ = all_node-1;
             count_node++;
             x->op = DI;
             x->reverse[0] = chain[$1];
             x->reverse[1] = chain[$3];
             calcVal(x);
         }  
-    | MINUS expr  %prec MUL
+    | MINUS expr 
         {
             node *x = CreateNode();
             chain[all_node++] = x;
-            $$ = all_node;
+            $$ = all_node-1;
             count_node++;
             x->op = UMN;
             x->reverse[0] = chain[$2];
@@ -150,53 +161,53 @@ expr : IDENT
         {
             node *x = CreateNode();
             chain[all_node++] = x;
-            $$ = all_node;
+            $$ = all_node-1;
             count_node++;
             x->op = P;
             x->reverse[0] = chain[$1];
             x->reverse[1] = chain[$3];
             calcVal(x);
         }  
-    | EXP expr RIGHTPA
+    | EXP LEFTPA expr RIGHTPA
         {
             node *x = CreateNode();
             chain[all_node++] = x;
-            $$ = all_node;
+            $$ = all_node-1;
             count_node++;
             x->op = EX;
-            x->reverse[0] = chain[$2];
+            x->reverse[0] = chain[$3];
             calcVal(x);
         }  
-    | LN expr RIGHTPA
+    | LN LEFTPA expr RIGHTPA
         {
             node *x = CreateNode();
             chain[all_node++] = x;
-            $$ = all_node;
+            $$ = all_node-1;
             count_node++;
             x->op = L;
-            x->reverse[0] = chain[$2];
+            x->reverse[0] = chain[$3];
             calcVal(x);
         }  
-    | SIN expr RIGHTPA
+    | SIN LEFTPA expr RIGHTPA
         {
             node *x = CreateNode();
             chain[all_node++] = x;
-            $$ = all_node;
+            $$ = all_node-1;
             count_node++;
             x->op = S;
-            x->reverse[0] = chain[$2];
+            x->reverse[0] = chain[$3];
             calcVal(x);
         }  
-    | COS expr RIGHTPA
+    | COS LEFTPA expr RIGHTPA
         {
             node *x = CreateNode();
             chain[all_node++] = x;
-            $$ = all_node;
+            $$ = all_node-1;
             count_node++;
             x->op = C;
-            x->reverse[0] = chain[$2];
+            x->reverse[0] = chain[$3];
             calcVal(x);
-        }  
+        }
     ;
 %%
 #include <stdio.h>
@@ -218,16 +229,16 @@ int yywrap(){
     return 1;
 }
 
-    node* CreateNode(){
-        node* x = (node*)malloc(sizeof(node));
-        x->diff = x->val = 0;
-        for(int i = 0; i < 10; i++){
-            x->name[i] = '\0';
-            x->reverse[i] = NULL;
-        }
-        printf("%d\n",all_node);
-        return x;
+node* CreateNode(){
+    node* x = (node*)malloc(sizeof(node));
+    x->diff = x->val = 0;
+    for(int i = 0; i < 10; i++){
+        x->name[i] = '\0';
+        x->reverse[i] = NULL;
     }
+    /* printf("Build node: %d\n",all_node); */
+    return x;
+}
 
 int FindID(char name[]){
         int i = 0;
@@ -274,7 +285,15 @@ void calcVal(node *n){
                 n->val = pow(2.71828,n->reverse[0]->val);
                 break;
         }
+        /* printf("Now opr:%d, value: %lf\n",n->op,n->val); */
     }
+
+
+void Reset(){
+    count_id = 0;
+    count_node = 0;
+    all_node = 0;
+}
 
 void ReverseAutoDiff(node *chain[]){
         int n = count_id + count_node;
@@ -315,7 +334,7 @@ void ReverseAutoDiff(node *chain[]){
                     x->reverse[0]->diff += cos(x->reverse[0]->val) * x->diff;
                     break;
                 case EX:
-                    x->reverse[0]->diff += pow(2.73,x->reverse[0]->val) * x->diff;
+                    x->reverse[0]->diff += pow(2.7182818284590,x->reverse[0]->val) * x->diff;
                     break;
                 default:break;
                 }
@@ -324,8 +343,9 @@ void ReverseAutoDiff(node *chain[]){
         }
         int c = 0;
         while(count_id > c){
-            node *x = chain[c];
+            node *x = chain[c++];
             printf("f-PDF@%s = %lf\n",x->name, x->diff);
         }
+        Reset();
     }
 
